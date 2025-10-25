@@ -1,0 +1,15 @@
+services:
+  padel-db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USERNAME: padel
+      POSTGRES_PASSWORD: padel
+      POSTGRES_DB: padel
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
