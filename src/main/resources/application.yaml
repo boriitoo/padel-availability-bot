@@ -5,6 +5,8 @@ spring:
     url: jdbc:postgresql://localhost:5433/padel
     username: padel
     password: padel
+  flyway:
+    enabled: true
   jpa:
     properties:
       hibernate:
