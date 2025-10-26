@@ -1,7 +1,7 @@
 package nl.xx1.padel.api.messaging.infrastructure.http;
 
-import nl.xx1.padel.api.messaging.application.IncomingMessageParameters;
-import nl.xx1.padel.api.messaging.application.IncomingMessageUseCase;
+import nl.xx1.padel.api.messaging.application.incomingmessage.IncomingMessageParameters;
+import nl.xx1.padel.api.messaging.application.incomingmessage.IncomingMessageUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

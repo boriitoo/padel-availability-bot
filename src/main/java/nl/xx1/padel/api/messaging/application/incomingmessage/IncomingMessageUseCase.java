@@ -1,4 +1,4 @@
-package nl.xx1.padel.api.messaging.application;
+package nl.xx1.padel.api.messaging.application.incomingmessage;
 
 import nl.xx1.padel.api.UseCase;
 
