@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class PadelBotApiApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PadelBotApiApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(PadelBotApiApplication.class, args);
+  }
 }

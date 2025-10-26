@@ -1,12 +1,11 @@
 package nl.xx1.padel.api.club.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import nl.xx1.padel.api.club.domain.ClubProvider;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Table(name = "clubs")

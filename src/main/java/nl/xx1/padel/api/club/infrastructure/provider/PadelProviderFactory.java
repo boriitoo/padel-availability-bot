@@ -3,7 +3,6 @@ package nl.xx1.padel.api.club.infrastructure.provider;
 import jdk.jshell.spi.ExecutionControl;
 import nl.xx1.padel.api.club.application.AvailabilityProvider;
 import nl.xx1.padel.api.club.domain.Club;
-import nl.xx1.padel.api.club.domain.ClubProvider;
 import nl.xx1.padel.api.club.infrastructure.provider.playtomic.PlaytomicClient;
 
 public class PadelProviderFactory {

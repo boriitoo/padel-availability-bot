@@ -1,9 +1,8 @@
 package nl.xx1.padel.api;
 
+import java.lang.annotation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-
-import java.lang.annotation.*;
 
 @Documented
 @Target(ElementType.TYPE)
@@ -12,5 +11,6 @@ import java.lang.annotation.*;
 @Validated
 public @interface UseCase {
   String title() default "";
+
   String description() default "";
 }

@@ -10,5 +10,6 @@ public interface ClubEntityMapper {
   ClubEntityMapper INSTANCE = Mappers.getMapper(ClubEntityMapper.class);
 
   Club toDomain(ClubEntity clubEntity);
+
   ClubEntity toEntity(Club club);
 }

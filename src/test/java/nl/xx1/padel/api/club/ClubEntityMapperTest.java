@@ -1,16 +1,15 @@
 package nl.xx1.padel.api.club;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Instant;
+import java.util.UUID;
 import nl.xx1.padel.api.club.domain.Club;
 import nl.xx1.padel.api.club.domain.ClubProvider;
 import nl.xx1.padel.api.club.infrastructure.persistence.entity.ClubEntity;
 import nl.xx1.padel.api.club.infrastructure.persistence.mapper.ClubEntityMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.time.Instant;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 public class ClubEntityMapperTest {
