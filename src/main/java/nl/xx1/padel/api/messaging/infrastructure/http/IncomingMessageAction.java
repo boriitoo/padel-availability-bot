@@ -20,6 +20,7 @@ public class IncomingMessageAction {
   @PostMapping
   public ResponseEntity<Void> handleIncomingMessage(@RequestBody IncomingMessageRequest request) {
     var parameters = IncomingMessageParameters.of(request);
+    System.out.println(request);
     incomingMessageUseCase.execute(parameters);
     return ResponseEntity.ok().build();
   }

@@ -1,3 +1,6 @@
+whatsapp:
+  prefix: !
+
 spring:
   application:
     name: padel-bot-api

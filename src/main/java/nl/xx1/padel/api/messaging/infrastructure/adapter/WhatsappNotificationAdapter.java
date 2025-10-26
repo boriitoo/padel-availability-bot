@@ -6,7 +6,5 @@ import org.springframework.stereotype.Component;
 @Component
 public class WhatsappNotificationAdapter implements SendTextMessage {
   @Override
-  public void sendMessage(String userId, String message) {
-
-  }
+  public void sendMessage(String userId, String message) {}
 }

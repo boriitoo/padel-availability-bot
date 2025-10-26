@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Component
-public @interface Command {
+public @interface CommandDescription {
   String title();
 
   String description();

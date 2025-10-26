@@ -1,0 +1,1176 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+gradle/
+  wrapper/
+    gradle-wrapper.properties
+src/
+  main/
+    java/
+      nl/
+        xx1/
+          padel/
+            api/
+              club/
+                application/
+                  AvailabilityProvider.java
+                  AvailabilityResult.java
+                domain/
+                  Club.java
+                  ClubProvider.java
+                  ClubRepository.java
+                infrastructure/
+                  persistence/
+                    adapter/
+                      ClubRepositoryAdapter.java
+                    entity/
+                      ClubEntity.java
+                    mapper/
+                      ClubEntityMapper.java
+                    repository/
+                      ClubEntityRepository.java
+                  provider/
+                    playtomic/
+                      PlaytomicClient.java
+                    PadelProviderFactory.java
+              command/
+                application/
+                  factory/
+                    CommandFactory.java
+                    CommandFactoryParameters.java
+                  help/
+                    HelpCommand.java
+                  CommandDescription.java
+                  ICommand.java
+                  ICommandContext.java
+              messaging/
+                application/
+                  incomingmessage/
+                    IncomingMessageParameters.java
+                    IncomingMessageUseCase.java
+                  SendTextMessage.java
+                infrastructure/
+                  adapter/
+                    WhatsappNotificationAdapter.java
+                  http/
+                    IncomingMessageAction.java
+                    IncomingMessageRequest.java
+                package-info.java
+              PadelBotApiApplication.java
+              UseCase.java
+    resources/
+      db/
+        migration/
+          V1__.sql
+      application.yaml
+  test/
+    java/
+      nl/
+        xx1/
+          padel/
+            api/
+              club/
+                ClubEntityMapperTest.java
+              PadelBotApiApplicationTests.java
+.gitattributes
+.gitignore
+build.gradle
+docker-compose.yml
+gradlew
+gradlew.bat
+settings.gradle
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/main/java/nl/xx1/padel/api/command/application/factory/CommandFactory.java">
+package nl.xx1.padel.api.command.application.factory;
+
+import java.util.List;
+import java.util.Optional;
+import nl.xx1.padel.api.command.application.CommandDescription;
+import nl.xx1.padel.api.command.application.ICommand;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CommandFactory {
+  private final List<ICommand> commands;
+  private final String prefix;
+
+  public CommandFactory(List<ICommand> commands, @Value("${whatsapp.prefix}") String prefix) {
+    this.commands = commands;
+    this.prefix = prefix;
+  }
+
+  public ICommand create(CommandFactoryParameters parameters) {
+    String[] split = parameters.body().split(" ");
+
+    if (split.length == 0) {
+      throw new RuntimeException("Unable to fetch command.");
+    }
+
+    String first = split[0];
+
+    if (!first.startsWith(prefix)) {
+      return null;
+    }
+
+    Optional<ICommand> optional =
+        commands.stream()
+            .filter(
+                command -> {
+                  CommandDescription annotation =
+                      command.getClass().getAnnotation(CommandDescription.class);
+                  return annotation.title().equals(first);
+                })
+            .findFirst();
+
+    return optional.orElse(null);
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/command/application/factory/CommandFactoryParameters.java">
+package nl.xx1.padel.api.command.application.factory;
+
+public record CommandFactoryParameters(
+    String from, String body, String messageId, boolean isForwarded) {}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/command/application/CommandDescription.java">
+package nl.xx1.padel.api.command.application;
+
+import java.lang.annotation.*;
+import org.springframework.stereotype.Component;
+
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Component
+public @interface CommandDescription {
+  String title();
+
+  String description();
+
+  boolean admin() default false;
+}
+</file>
+
+<file path="gradle/wrapper/gradle-wrapper.properties">
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/application/AvailabilityProvider.java">
+package nl.xx1.padel.api.club.application;
+
+public interface AvailabilityProvider {
+  AvailabilityResult getAvailability();
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/application/AvailabilityResult.java">
+package nl.xx1.padel.api.club.application;
+
+public record AvailabilityResult() {}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/domain/ClubProvider.java">
+package nl.xx1.padel.api.club.domain;
+
+public enum ClubProvider {
+  PLAYTOMIC,
+  BOOK_NOW
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/domain/ClubRepository.java">
+package nl.xx1.padel.api.club.domain;
+
+public interface ClubRepository {
+  Club save(Club club);
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/infrastructure/persistence/adapter/ClubRepositoryAdapter.java">
+package nl.xx1.padel.api.club.infrastructure.persistence.adapter;
+
+import nl.xx1.padel.api.club.domain.Club;
+import nl.xx1.padel.api.club.domain.ClubRepository;
+import nl.xx1.padel.api.club.infrastructure.persistence.repository.ClubEntityRepository;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ClubRepositoryAdapter implements ClubRepository {
+
+  private final ClubEntityRepository clubEntityRepository;
+
+  public ClubRepositoryAdapter(ClubEntityRepository clubEntityRepository) {
+    this.clubEntityRepository = clubEntityRepository;
+  }
+
+  @Override
+  public Club save(Club club) {
+    return null;
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/infrastructure/provider/playtomic/PlaytomicClient.java">
+package nl.xx1.padel.api.club.infrastructure.provider.playtomic;
+
+import nl.xx1.padel.api.club.application.AvailabilityProvider;
+import nl.xx1.padel.api.club.application.AvailabilityResult;
+
+public class PlaytomicClient implements AvailabilityProvider {
+  @Override
+  public AvailabilityResult getAvailability() {
+    return null;
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/command/application/ICommand.java">
+package nl.xx1.padel.api.command.application;
+
+public interface ICommand {
+  void execute(ICommandContext context);
+
+  void validate(ICommandContext context);
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/command/application/ICommandContext.java">
+package nl.xx1.padel.api.command.application;
+
+public record ICommandContext(String from) {}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/application/incomingmessage/IncomingMessageParameters.java">
+package nl.xx1.padel.api.messaging.application.incomingmessage;
+
+import nl.xx1.padel.api.messaging.infrastructure.http.IncomingMessageRequest;
+import org.springframework.util.Assert;
+
+public record IncomingMessageParameters(
+    String messageId, String body, String from, Boolean isForwarded) {
+  public IncomingMessageParameters {
+    Assert.notNull(messageId, "Message ID can't be null.");
+    Assert.notNull(body, "Body can't be null.");
+    Assert.notNull(from, "From can't be null.");
+
+    if (isForwarded == null) {
+      isForwarded = false;
+    }
+  }
+
+  public static IncomingMessageParameters of(IncomingMessageRequest request) {
+    return new IncomingMessageParameters(
+        request.messageId(), request.body(), request.from(), request.isForwarded());
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/application/incomingmessage/IncomingMessageUseCase.java">
+package nl.xx1.padel.api.messaging.application.incomingmessage;
+
+import nl.xx1.padel.api.UseCase;
+
+@UseCase(
+    title = "Incoming Message",
+    description = "This use case handles an incoming message received on our registered webhook.")
+public class IncomingMessageUseCase {
+  public void execute(IncomingMessageParameters parameters) {}
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/application/SendTextMessage.java">
+package nl.xx1.padel.api.messaging.application;
+
+public interface SendTextMessage {
+  void sendMessage(String userId, String message);
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/infrastructure/adapter/WhatsappNotificationAdapter.java">
+package nl.xx1.padel.api.messaging.infrastructure.adapter;
+
+import nl.xx1.padel.api.messaging.application.SendTextMessage;
+import org.springframework.stereotype.Component;
+
+@Component
+public class WhatsappNotificationAdapter implements SendTextMessage {
+  @Override
+  public void sendMessage(String userId, String message) {}
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/infrastructure/http/IncomingMessageRequest.java">
+package nl.xx1.padel.api.messaging.infrastructure.http;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record IncomingMessageRequest(
+    @JsonProperty("id") String messageId,
+    @JsonProperty("body") String body,
+    @JsonProperty("from") String from,
+    @JsonProperty("isForwarded") Boolean isForwarded) {}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/package-info.java">
+@ApplicationModule(type = ApplicationModule.Type.OPEN)
+package nl.xx1.padel.api.messaging;
+
+import org.springframework.modulith.ApplicationModule;
+</file>
+
+<file path="src/main/resources/db/migration/V1__.sql">
+CREATE TABLE clubs
+(
+    id         UUID                        NOT NULL,
+    name       VARCHAR(255)                NOT NULL,
+    is_active  BOOLEAN                     NOT NULL,
+    provider   VARCHAR(255)                NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    CONSTRAINT pk_clubs PRIMARY KEY (id)
+);
+
+ALTER TABLE clubs
+    ADD CONSTRAINT uc_clubs_name UNIQUE (name);
+</file>
+
+<file path=".gitattributes">
+/gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+</file>
+
+<file path=".gitignore">
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+</file>
+
+<file path="gradlew">
+#!/bin/sh
+
+#
+# Copyright © 2015-2021 the original authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+##############################################################################
+#
+#   Gradle start up script for POSIX generated by Gradle.
+#
+#   Important for running:
+#
+#   (1) You need a POSIX-compliant shell to run this script. If your /bin/sh is
+#       noncompliant, but you have some other compliant shell such as ksh or
+#       bash, then to run this script, type that shell name before the whole
+#       command line, like:
+#
+#           ksh Gradle
+#
+#       Busybox and similar reduced shells will NOT work, because this script
+#       requires all of these POSIX shell features:
+#         * functions;
+#         * expansions «$var», «${var}», «${var:-default}», «${var+SET}»,
+#           «${var#prefix}», «${var%suffix}», and «$( cmd )»;
+#         * compound commands having a testable exit status, especially «case»;
+#         * various built-in commands including «command», «set», and «ulimit».
+#
+#   Important for patching:
+#
+#   (2) This script targets any POSIX shell, so it avoids extensions provided
+#       by Bash, Ksh, etc; in particular arrays are avoided.
+#
+#       The "traditional" practice of packing multiple parameters into a
+#       space-separated string is a well documented source of bugs and security
+#       problems, so this is (mostly) avoided, by progressively accumulating
+#       options in "$@", and eventually passing that to Java.
+#
+#       Where the inherited environment variables (DEFAULT_JVM_OPTS, JAVA_OPTS,
+#       and GRADLE_OPTS) rely on word-splitting, this is performed explicitly;
+#       see the in-line comments for details.
+#
+#       There are tweaks for specific operating systems such as AIX, CygWin,
+#       Darwin, MinGW, and NonStop.
+#
+#   (3) This script is generated from the Groovy template
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       within the Gradle project.
+#
+#       You can find Gradle at https://github.com/gradle/gradle/.
+#
+##############################################################################
+
+# Attempt to set APP_HOME
+
+# Resolve links: $0 may be a link
+app_path=$0
+
+# Need this for daisy-chained symlinks.
+while
+    APP_HOME=${app_path%"${app_path##*/}"}  # leaves a trailing /; empty if no leading path
+    [ -h "$app_path" ]
+do
+    ls=$( ls -ld "$app_path" )
+    link=${ls#*' -> '}
+    case $link in             #(
+      /*)   app_path=$link ;; #(
+      *)    app_path=$APP_HOME$link ;;
+    esac
+done
+
+# This is normally unused
+# shellcheck disable=SC2034
+APP_BASE_NAME=${0##*/}
+# Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
+APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD=maximum
+
+warn () {
+    echo "$*"
+} >&2
+
+die () {
+    echo
+    echo "$*"
+    echo
+    exit 1
+} >&2
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false
+msys=false
+darwin=false
+nonstop=false
+case "$( uname )" in                #(
+  CYGWIN* )         cygwin=true  ;; #(
+  Darwin* )         darwin=true  ;; #(
+  MSYS* | MINGW* )  msys=true    ;; #(
+  NONSTOP* )        nonstop=true ;;
+esac
+
+CLASSPATH="\\\"\\\""
+
+
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD=$JAVA_HOME/jre/sh/java
+    else
+        JAVACMD=$JAVA_HOME/bin/java
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD=java
+    if ! command -v java >/dev/null 2>&1
+    then
+        die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+fi
+
+# Increase the maximum file descriptors if we can.
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
+    case $MAX_FD in #(
+      max*)
+        # In POSIX sh, ulimit -H is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        MAX_FD=$( ulimit -H -n ) ||
+            warn "Could not query maximum file descriptor limit"
+    esac
+    case $MAX_FD in  #(
+      '' | soft) :;; #(
+      *)
+        # In POSIX sh, ulimit -n is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        ulimit -n "$MAX_FD" ||
+            warn "Could not set maximum file descriptor limit to $MAX_FD"
+    esac
+fi
+
+# Collect all arguments for the java command, stacking in reverse order:
+#   * args from the command line
+#   * the main class name
+#   * -classpath
+#   * -D...appname settings
+#   * --module-path (only if needed)
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables.
+
+# For Cygwin or MSYS, switch paths to Windows format before running java
+if "$cygwin" || "$msys" ; then
+    APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
+    CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
+
+    JAVACMD=$( cygpath --unix "$JAVACMD" )
+
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    for arg do
+        if
+            case $arg in                                #(
+              -*)   false ;;                            # don't mess with options #(
+              /?*)  t=${arg#/} t=/${t%%/*}              # looks like a POSIX filepath
+                    [ -e "$t" ] ;;                      #(
+              *)    false ;;
+            esac
+        then
+            arg=$( cygpath --path --ignore --mixed "$arg" )
+        fi
+        # Roll the args list around exactly as many times as the number of
+        # args, so each arg winds up back in the position where it started, but
+        # possibly modified.
+        #
+        # NB: a `for` loop captures its iteration list before it begins, so
+        # changing the positional parameters here affects neither the number of
+        # iterations, nor the values presented in `arg`.
+        shift                   # remove old arg
+        set -- "$@" "$arg"      # push replacement arg
+    done
+fi
+
+
+# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+
+# Collect all arguments for the java command:
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
+#     and any embedded shellness will be escaped.
+#   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable and will be
+#     treated as '${Hostname}' itself on the command line.
+
+set -- \
+        "-Dorg.gradle.appname=$APP_BASE_NAME" \
+        -classpath "$CLASSPATH" \
+        -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
+        "$@"
+
+# Stop when "xargs" is not available.
+if ! command -v xargs >/dev/null 2>&1
+then
+    die "xargs is not available"
+fi
+
+# Use "xargs" to parse quoted args.
+#
+# With -n1 it outputs one arg per line, with the quotes and backslashes removed.
+#
+# In Bash we could simply go:
+#
+#   readarray ARGS < <( xargs -n1 <<<"$var" ) &&
+#   set -- "${ARGS[@]}" "$@"
+#
+# but POSIX shell has neither arrays nor command substitution, so instead we
+# post-process each arg (as a line of input to sed) to backslash-escape any
+# character that might be a shell metacharacter, then use eval to reverse
+# that process (while maintaining the separation between arguments), and wrap
+# the whole thing up as a single "set" statement.
+#
+# This will of course break if any of these variables contains a newline or
+# an unmatched quote.
+#
+
+eval "set -- $(
+        printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS" |
+        xargs -n1 |
+        sed ' s~[^-[:alnum:]+,./:=@_]~\\&~g; ' |
+        tr '\n' ' '
+    )" '"$@"'
+
+exec "$JAVACMD" "$@"
+</file>
+
+<file path="gradlew.bat">
+@rem
+@rem Copyright 2015 the original author or authors.
+@rem
+@rem Licensed under the Apache License, Version 2.0 (the "License");
+@rem you may not use this file except in compliance with the License.
+@rem You may obtain a copy of the License at
+@rem
+@rem      https://www.apache.org/licenses/LICENSE-2.0
+@rem
+@rem Unless required by applicable law or agreed to in writing, software
+@rem distributed under the License is distributed on an "AS IS" BASIS,
+@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@rem See the License for the specific language governing permissions and
+@rem limitations under the License.
+@rem
+@rem SPDX-License-Identifier: Apache-2.0
+@rem
+
+@if "%DEBUG%"=="" @echo off
+@rem ##########################################################################
+@rem
+@rem  Gradle startup script for Windows
+@rem
+@rem ##########################################################################
+
+@rem Set local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" setlocal
+
+set DIRNAME=%~dp0
+if "%DIRNAME%"=="" set DIRNAME=.
+@rem This is normally unused
+set APP_BASE_NAME=%~n0
+set APP_HOME=%DIRNAME%
+
+@rem Resolve any "." and ".." in APP_HOME to make it shorter.
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
+
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+
+@rem Find java.exe
+if defined JAVA_HOME goto findJavaFromJavaHome
+
+set JAVA_EXE=java.exe
+%JAVA_EXE% -version >NUL 2>&1
+if %ERRORLEVEL% equ 0 goto execute
+
+echo. 1>&2
+echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH. 1>&2
+echo. 1>&2
+echo Please set the JAVA_HOME variable in your environment to match the 1>&2
+echo location of your Java installation. 1>&2
+
+goto fail
+
+:findJavaFromJavaHome
+set JAVA_HOME=%JAVA_HOME:"=%
+set JAVA_EXE=%JAVA_HOME%/bin/java.exe
+
+if exist "%JAVA_EXE%" goto execute
+
+echo. 1>&2
+echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME% 1>&2
+echo. 1>&2
+echo Please set the JAVA_HOME variable in your environment to match the 1>&2
+echo location of your Java installation. 1>&2
+
+goto fail
+
+:execute
+@rem Setup the command line
+
+set CLASSPATH=
+
+
+@rem Execute Gradle
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+
+:end
+@rem End local scope for the variables with windows NT shell
+if %ERRORLEVEL% equ 0 goto mainEnd
+
+:fail
+rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
+rem the _cmd.exe /c_ return code!
+set EXIT_CODE=%ERRORLEVEL%
+if %EXIT_CODE% equ 0 set EXIT_CODE=1
+if not ""=="%GRADLE_EXIT_CONSOLE%" exit %EXIT_CODE%
+exit /b %EXIT_CODE%
+
+:mainEnd
+if "%OS%"=="Windows_NT" endlocal
+
+:omega
+</file>
+
+<file path="settings.gradle">
+rootProject.name = 'padel-bot-api'
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/domain/Club.java">
+package nl.xx1.padel.api.club.domain;
+
+import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.util.Assert;
+
+@Getter
+@Setter
+public class Club {
+  private UUID id;
+  private String name;
+  private Instant createdAt;
+  private ClubProvider provider;
+  private boolean isActive;
+
+  public Club(String name, ClubProvider provider) {
+    Assert.notNull(name, "Name can't be null.");
+    Assert.notNull(provider, "Provider must be set.");
+    this.name = name;
+    this.provider = provider;
+    this.createdAt = Instant.now();
+    this.isActive = true;
+  }
+
+  public void deactivate() {
+    this.isActive = false;
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/infrastructure/persistence/entity/ClubEntity.java">
+package nl.xx1.padel.api.club.infrastructure.persistence.entity;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+import nl.xx1.padel.api.club.domain.ClubProvider;
+
+@Entity
+@Table(name = "clubs")
+@Getter
+@Setter
+public class ClubEntity {
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private UUID id;
+
+  @Column(name = "name", nullable = false, unique = true)
+  private String name;
+
+  @Column(name = "is_active", nullable = false)
+  private boolean isActive;
+
+  @Column(name = "provider", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private ClubProvider provider;
+
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt;
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/infrastructure/persistence/mapper/ClubEntityMapper.java">
+package nl.xx1.padel.api.club.infrastructure.persistence.mapper;
+
+import nl.xx1.padel.api.club.domain.Club;
+import nl.xx1.padel.api.club.infrastructure.persistence.entity.ClubEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+
+@Mapper
+public interface ClubEntityMapper {
+  ClubEntityMapper INSTANCE = Mappers.getMapper(ClubEntityMapper.class);
+
+  Club toDomain(ClubEntity clubEntity);
+
+  ClubEntity toEntity(Club club);
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/infrastructure/persistence/repository/ClubEntityRepository.java">
+package nl.xx1.padel.api.club.infrastructure.persistence.repository;
+
+import java.util.UUID;
+import nl.xx1.padel.api.club.infrastructure.persistence.entity.ClubEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ClubEntityRepository extends JpaRepository<ClubEntity, UUID> {}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/command/application/help/HelpCommand.java">
+package nl.xx1.padel.api.command.application.help;
+
+import java.util.Set;
+import nl.xx1.padel.api.command.application.CommandDescription;
+import nl.xx1.padel.api.command.application.ICommand;
+import nl.xx1.padel.api.command.application.ICommandContext;
+import nl.xx1.padel.api.messaging.application.SendTextMessage;
+import org.reflections.Reflections;
+
+@CommandDescription(
+    title = "!help",
+    description = "This will display all relevant information to get you up and running.")
+public class HelpCommand implements ICommand {
+
+  private final SendTextMessage sendTextMessage;
+
+  public HelpCommand(SendTextMessage sendTextMessage) {
+    this.sendTextMessage = sendTextMessage;
+  }
+
+  @Override
+  public void execute(ICommandContext context) {
+    StringBuilder stringBuilder = new StringBuilder("My commands are: \n");
+    Set<Class<? extends ICommand>> commands = new Reflections().getSubTypesOf(ICommand.class);
+    commands.forEach(
+        command -> {
+          CommandDescription annotation = command.getAnnotation(CommandDescription.class);
+          stringBuilder.append("%s: %s".formatted(annotation.title(), annotation.description()));
+        });
+
+    sendTextMessage.sendMessage(context.from(), stringBuilder.toString());
+  }
+
+  @Override
+  public void validate(ICommandContext context) {}
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/messaging/infrastructure/http/IncomingMessageAction.java">
+package nl.xx1.padel.api.messaging.infrastructure.http;
+
+import nl.xx1.padel.api.messaging.application.incomingmessage.IncomingMessageParameters;
+import nl.xx1.padel.api.messaging.application.incomingmessage.IncomingMessageUseCase;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/messaging")
+public class IncomingMessageAction {
+  private final IncomingMessageUseCase incomingMessageUseCase;
+
+  public IncomingMessageAction(IncomingMessageUseCase incomingMessageUseCase) {
+    this.incomingMessageUseCase = incomingMessageUseCase;
+  }
+
+  @PostMapping
+  public ResponseEntity<Void> handleIncomingMessage(@RequestBody IncomingMessageRequest request) {
+    var parameters = IncomingMessageParameters.of(request);
+    incomingMessageUseCase.execute(parameters);
+    return ResponseEntity.ok().build();
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/PadelBotApiApplication.java">
+package nl.xx1.padel.api;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class PadelBotApiApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(PadelBotApiApplication.class, args);
+  }
+}
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/UseCase.java">
+package nl.xx1.padel.api;
+
+import java.lang.annotation.*;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Service
+@Validated
+public @interface UseCase {
+  String title() default "";
+
+  String description() default "";
+}
+</file>
+
+<file path="src/main/resources/application.yaml">
+whatsapp:
+  prefix: !
+
+spring:
+  application:
+    name: padel-bot-api
+  datasource:
+    url: jdbc:postgresql://localhost:5433/padel
+    username: padel
+    password: padel
+  flyway:
+    enabled: true
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+</file>
+
+<file path="src/test/java/nl/xx1/padel/api/club/ClubEntityMapperTest.java">
+package nl.xx1.padel.api.club;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Instant;
+import java.util.UUID;
+import nl.xx1.padel.api.club.domain.Club;
+import nl.xx1.padel.api.club.domain.ClubProvider;
+import nl.xx1.padel.api.club.infrastructure.persistence.entity.ClubEntity;
+import nl.xx1.padel.api.club.infrastructure.persistence.mapper.ClubEntityMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+public class ClubEntityMapperTest {
+  @Test
+  public void shouldMapClubEntityToDomain() {
+    // arrange
+    ClubEntity clubEntity = new ClubEntity();
+    clubEntity.setId(UUID.randomUUID());
+    clubEntity.setName("Club Name");
+    clubEntity.setActive(true);
+    clubEntity.setProvider(ClubProvider.PLAYTOMIC);
+    clubEntity.setCreatedAt(Instant.now());
+
+    // act
+    Club domain = ClubEntityMapper.INSTANCE.toDomain(clubEntity);
+
+    // assert
+    assertThat(domain).isNotNull();
+    assertThat(domain.getName()).isEqualTo("Club Name");
+    assertThat(domain.isActive()).isTrue();
+    assertThat(domain.getProvider()).isEqualTo(ClubProvider.PLAYTOMIC);
+    assertThat(domain.getCreatedAt()).isNotNull();
+  }
+
+  @Test
+  public void shouldMapDomainToEntity() {
+    // arrange
+    Club club = new Club("example club", ClubProvider.PLAYTOMIC);
+
+    // act
+    ClubEntity clubEntity = ClubEntityMapper.INSTANCE.toEntity(club);
+
+    // assert
+    assertThat(clubEntity).isNotNull();
+    assertThat(clubEntity.getName()).isEqualTo("example club");
+    assertThat(clubEntity.getProvider()).isEqualTo(ClubProvider.PLAYTOMIC);
+    assertThat(clubEntity.getCreatedAt()).isEqualTo(club.getCreatedAt());
+  }
+}
+</file>
+
+<file path="src/test/java/nl/xx1/padel/api/PadelBotApiApplicationTests.java">
+package nl.xx1.padel.api;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class PadelBotApiApplicationTests {
+
+  @Test
+  void contextLoads() {}
+}
+</file>
+
+<file path="docker-compose.yml">
+services:
+  padel-db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: padel
+      POSTGRES_PASSWORD: padel
+      POSTGRES_DB: padel
+</file>
+
+<file path="src/main/java/nl/xx1/padel/api/club/infrastructure/provider/PadelProviderFactory.java">
+package nl.xx1.padel.api.club.infrastructure.provider;
+
+import nl.xx1.padel.api.club.application.AvailabilityProvider;
+import nl.xx1.padel.api.club.domain.Club;
+import nl.xx1.padel.api.club.infrastructure.provider.playtomic.PlaytomicClient;
+
+public class PadelProviderFactory {
+  public static AvailabilityProvider create(Club club) {
+    return switch (club.getProvider()) {
+      case PLAYTOMIC, BOOK_NOW -> new PlaytomicClient();
+    };
+  }
+}
+</file>
+
+<file path="build.gradle">
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '6.25.0' // ✅ Spotless plugin
+}
+
+group = 'nl.xx1.padel'
+version = '0.0.1-SNAPSHOT'
+description = 'Padel Bot API'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springModulithVersion', "1.4.3")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.springframework.modulith:spring-modulith-actuator'
+    runtimeOnly 'org.springframework.modulith:spring-modulith-observability'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    implementation("org.reflections:reflections:0.10.2")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+spotless {
+    java {
+        googleJavaFormat('1.17.0')
+        target 'src/**/*.java'
+    }
+}
+</file>
+
+</files>
